@@ -26,6 +26,9 @@ uiGraphicsVersion = "1.10.5"
 hilt = "2.51.1"
 # Hilt extension for Jetpack Navigation Compose (hiltViewModel() helper)
 hiltNavigationCompose = "1.2.0"
+mockk = "1.13.12"
+turbine = "1.1.0"
+kotlinxCoroutinesTest = "1.7.3"
 
 
 [libraries]
@@ -59,6 +62,10 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 # Hilt + Compose integration - provides hiltViewModel() to use in @Composable functions
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+# Test dependencies
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

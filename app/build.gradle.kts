@@ -83,4 +83,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 // hilt-navigation-compose: provides hiltViewModel() for use inside @Composable functions
     implementation(libs.hilt.navigation.compose)
+
+// Unit Testing
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
