@@ -52,6 +52,7 @@ import coil.compose.AsyncImage
 import com.example.markettracker.R
 import com.example.markettracker.domain.model.Coin
 import com.example.markettracker.domain.model.MarketFilter
+import com.example.markettracker.ui.components.ShimmerCoinItem
 import com.example.markettracker.ui.theme.Background
 import com.example.markettracker.ui.theme.CardBackground
 import com.example.markettracker.ui.theme.DarkBackground
@@ -261,9 +262,11 @@ fun MarketCoinsList(
 ) {
     when {
         isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Loading...", color = TextSecondary)
-            }
+           LazyColumn {
+               items(9){
+                   ShimmerCoinItem()
+               }
+           }
         }
         error != null -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

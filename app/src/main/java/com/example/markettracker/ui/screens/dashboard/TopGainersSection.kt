@@ -2,6 +2,7 @@ package com.example.markettracker.ui.screens.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import com.example.markettracker.ui.components.DashboardSectionShimmer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,12 +54,7 @@ fun TopGainersSection(coins: List<Coin>) {
         Spacer(modifier = Modifier.height(10.dp))
 
         if (coins.isEmpty()) {
-            // Show placeholder while data hasn't loaded yet
-            Text(
-                text  = "Loading market data...",
-                color = TextPrimary.copy(alpha = 0.5f),
-                fontSize = 14.sp
-            )
+            DashboardSectionShimmer()
         } else {
             // Show real coins from the API
             coins.forEach { coin ->

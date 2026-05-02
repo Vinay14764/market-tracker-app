@@ -1,7 +1,8 @@
 package com.example.markettracker.ui.screens.dashboard
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.markettracker.ui.theme.Background
+import com.example.markettracker.ui.components.StarfieldBackground
 
 /**
  * Dashboard (Home) screen composable.
@@ -36,23 +37,26 @@ fun DashboardScreen() {
 
     // Collect the full dashboard state
     val state by viewModel.state.collectAsState()
+    Box(modifier = Modifier.fillMaxSize()) {
+        StarfieldBackground()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-            .padding(horizontal = 20.dp, vertical = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        item { TopBar() }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            TopBar()
 
-        item { PortfolioCard() }
+            PortfolioCard()
 
-        item { QuickActionsRow() }
+            QuickActionsRow()
+            LazyColumn {
+                // Pass real data from state to the section composables
+                item { TopGainersSection(coins = state.topGainers) }
 
-        // Pass real data from state to the section composables
-        item { TopGainersSection(coins = state.topGainers) }
-
-        item { TopLosersSection(coins = state.topLosers) }
+                item { TopLosersSection(coins = state.topLosers) }
+            }
+        }
     }
 }

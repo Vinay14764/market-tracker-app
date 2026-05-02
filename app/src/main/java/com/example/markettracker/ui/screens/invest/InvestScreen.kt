@@ -3,6 +3,7 @@ package com.example.markettracker.ui.screens.invest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import com.example.markettracker.ui.components.InvestScreenShimmer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +24,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,21 +31,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.room.util.TableInfo
 import coil.compose.AsyncImage
 import com.example.markettracker.domain.model.Coin
 import com.example.markettracker.ui.components.StarfieldBackground
-import com.example.markettracker.ui.screens.market.CoinList
-import com.example.markettracker.ui.screens.market.MarketCoinItem
-import com.example.markettracker.ui.theme.Background
 import com.example.markettracker.ui.theme.CardBackground
 import com.example.markettracker.ui.theme.DarkBackground
-import com.example.markettracker.ui.theme.NeonGreen
 import com.example.markettracker.ui.theme.NeonGreenDark
 import com.example.markettracker.ui.theme.PrimaryGreen
 import com.example.markettracker.ui.theme.PrimaryRed
@@ -58,14 +52,7 @@ fun InvestScreen(
 ) {
     val state by viewModel.state.collectAsState()
     if (state.isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Background),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = NeonGreen)
-        }
+        InvestScreenShimmer()
         return
     }
     Box(modifier = Modifier.fillMaxSize()) {
