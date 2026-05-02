@@ -55,5 +55,4 @@ fun DashboardScreen() {
 
         item { TopLosersSection(coins = state.topLosers) }
     }
-    //Test commit from Android Studio
 }
