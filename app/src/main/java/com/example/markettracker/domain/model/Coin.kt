@@ -1,5 +1,7 @@
 package com.example.markettracker.domain.model
 
+import androidx.compose.runtime.Immutable
+
 
 /**
  * The central domain model for a cryptocurrency coin.
@@ -16,6 +18,7 @@ package com.example.markettracker.domain.model
  * Flow:
  *   CoinDto (API) → Mapper → CoinEntity (Room) → Mapper → Coin (Domain) → ViewModel → UI
  */
+@Immutable
 data class Coin(
 
     /** Unique ID from CoinGecko, e.g. "bitcoin", "ethereum", "dogecoin" */

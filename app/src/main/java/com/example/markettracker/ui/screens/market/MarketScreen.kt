@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,12 +44,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.markettracker.R
 import com.example.markettracker.domain.model.Coin
 import com.example.markettracker.domain.model.MarketFilter
@@ -140,7 +143,6 @@ fun MarketScreen(navController: NavController) {
             coins = state.coins,
             isLoading = state.isLoading,
             error = state.error,
-            currentFilter = state.filter,
             onFavoriteClick = { coin ->
                 viewModel.onIntent(MarketIntent.FavoriteClicked(coin.id, coin.isFavorite))
             },
@@ -202,6 +204,12 @@ fun MarketFilterRow(
     onFilterSelected: (MarketFilter) -> Unit
 ) {
     val filters = listOf(MarketFilter.ALL, MarketFilter.FAVORITES)
+    val unselectedBrush = remember {
+        Brush.verticalGradient(
+            colors = listOf(DarkCard, DarkCard, NeonGreen.copy(alpha =
+                0.05f))
+        )
+    }
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         items(filters) { filter ->
@@ -212,12 +220,9 @@ fun MarketFilterRow(
                         if (isSelected)
                             Modifier.background(PrimaryGreen, RoundedCornerShape(20.dp))
                         else
-                            Modifier.background(
-                                Brush.verticalGradient(
-                                    colors = listOf(DarkCard, DarkCard, NeonGreen.copy(alpha = 0.05f))
-                                ),
-                                RoundedCornerShape(20.dp)
-                            )
+                            Modifier.background(unselectedBrush,
+                                RoundedCornerShape(20.dp))
+
                     )
                     .clickable { onFilterSelected(filter) }
                     .wrapContentWidth()
@@ -256,7 +261,6 @@ fun MarketCoinsList(
     coins: List<Coin>,
     isLoading: Boolean,
     error: String?,
-    currentFilter: MarketFilter,
     onFavoriteClick: (Coin) -> Unit,
     onCoinClick: (Coin) -> Unit
 ) {
@@ -275,14 +279,15 @@ fun MarketCoinsList(
         }
         else -> {
             LazyColumn {
-                items(coins) { coin ->
+                items(coins,key = {it.id}) { coin ->
                     // ✅ LOCAL val — computed fresh for each coin, no global mutation
                     val isPositive = coin.priceChangePercent24h >= 0
 
                     // Format price in Indian locale (e.g. "6,56,985")
-                    val formattedPrice = NumberFormat
+                    val formattedPrice = remember(coin.currentPrice)  { NumberFormat
                         .getNumberInstance(Locale("en", "IN"))
                         .format(coin.currentPrice)
+                    }
 
                     MarketCoinItem(
                         coin       = coin,
@@ -340,8 +345,16 @@ fun MarketCoinItem(
                     .background(DarkBackground, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
+                val context = LocalContext.current
+
                 AsyncImage(
-                    model             = coin.imageUrl,
+                    remember(coin.imageUrl) {
+                        ImageRequest.Builder(context)
+                            .data(coin.imageUrl)
+                            .size(80) // 40dp × 2 for xxhdpi screens
+                            .crossfade(true)
+                            .build()
+                    },
                     contentDescription = coin.name,
                     modifier          = Modifier.size(40.dp).clip(CircleShape),
                     placeholder       = painterResource(R.drawable.placeholder),
@@ -401,58 +414,54 @@ fun SparklineChart(
     values: List<Float>,
     isPositive: Boolean
 ) {
-    // Pick the chart color based on whether the coin is up or down
     val lineColor = if (isPositive) PrimaryGreen else PrimaryRed
 
-    Canvas(
-        modifier = Modifier.width(70.dp).height(25.dp)
-    ) {
-        if (values.isEmpty()) return@Canvas
+    // Recomputed only when sparkline data changes, not on every recomposition/scroll frame.
+    // Stores (xFraction, yFraction) in 0..1 space; scaled to canvas pixels inside Canvas.
+    val normalizedPoints = remember(values) {
+        if (values.size < 2) return@remember emptyList()
+        val maxVal = values.maxOrNull() ?: 0f
+        val minVal = values.minOrNull() ?: 0f
+        val range  = maxVal - minVal
+        val count  = values.size
+        values.mapIndexed { index, value ->
+            val xFrac = index.toFloat() / (count - 1)
+            val yFrac = if (range == 0f) 0.5f else 1f - (value - minVal) / range
+            Pair(xFrac, yFrac)
+        }
+    }
 
-        val maxVal  = values.maxOrNull() ?: 0f
-        val minVal  = values.minOrNull() ?: 0f
-        val range   = maxVal - minVal
-        val stepX   = size.width / (values.size - 1)
+    Canvas(modifier = Modifier.width(70.dp).height(25.dp)) {
+        if (normalizedPoints.isEmpty()) return@Canvas
 
         val linePath = Path()
         val fillPath = Path()
 
-        values.forEachIndexed { index, value ->
-            val x = index * stepX
-
-            // Normalize value to 0..1 range, then invert Y (screen Y goes top-down)
-            val normalized = if (range == 0f) 0f else (value - minVal) / range
-            val y = size.height - normalized * size.height
+        normalizedPoints.forEachIndexed { index, (xFrac, yFrac) ->
+            val x = xFrac * size.width
+            val y = yFrac * size.height
 
             if (index == 0) {
                 linePath.moveTo(x, y)
-                fillPath.moveTo(x, size.height)  // Start fill from bottom-left
+                fillPath.moveTo(x, size.height)
                 fillPath.lineTo(x, y)
             } else {
                 linePath.lineTo(x, y)
                 fillPath.lineTo(x, y)
             }
-
-            if (index == values.lastIndex) {
-                fillPath.lineTo(x, size.height)  // Close fill back to bottom-right
+            if (index == normalizedPoints.lastIndex) {
+                fillPath.lineTo(x, size.height)
                 fillPath.close()
             }
         }
 
-        // Draw the semi-transparent fill area under the line
         drawPath(
             path  = fillPath,
             brush = Brush.verticalGradient(
                 colors = listOf(lineColor.copy(alpha = 0.35f), Color.Transparent)
             )
         )
-
-        // Draw the line itself
-        drawPath(
-            path  = linePath,
-            color = lineColor,
-            style = Stroke(width = 3.dp.toPx())
-        )
+        drawPath(path = linePath, color = lineColor, style = Stroke(width = 3.dp.toPx()))
     }
 }
 

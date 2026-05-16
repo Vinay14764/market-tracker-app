@@ -3,7 +3,6 @@ package com.example.markettracker.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.foundation.layout.padding
@@ -118,7 +117,6 @@ fun MainApp(rootNavController: androidx.navigation.NavController) {
 
     Scaffold(
         containerColor = DarkBackground,
-        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             NavigationBar(
                 containerColor = DarkSurface,
